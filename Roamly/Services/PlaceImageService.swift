@@ -33,7 +33,11 @@ final class PlaceImageService {
         if let cached = cache[title] { return cached }
         if failed.contains(title) { return nil }
 
-        if let url = await pageImageURL(forTitle: title) ?? summaryImageURL(forTitle: title) {
+        if let url = await pageImageURL(forTitle: title) {
+            cache[title] = url
+            return url
+        }
+        if let url = await summaryImageURL(forTitle: title) {
             cache[title] = url
             return url
         }
