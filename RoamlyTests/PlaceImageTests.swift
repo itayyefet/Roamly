@@ -58,4 +58,24 @@ final class PlaceImageTests: XCTestCase {
             }
         }
     }
+
+    func testParsesSummaryImageFallback() {
+        let json = """
+        {
+          "title": "Bayfront Park (Miami)",
+          "thumbnail": { "source": "https://upload.wikimedia.org/x/200px-bayfront.jpg" },
+          "originalimage": { "source": "https://upload.wikimedia.org/x/bayfront.jpg" }
+        }
+        """.data(using: .utf8)!
+        XCTAssertEqual(PlaceImageService.parseSummaryImage(from: json)?.absoluteString,
+                       "https://upload.wikimedia.org/x/200px-bayfront.jpg")
+    }
+
+    func testSummaryEndpointEncodesTitle() throws {
+        let url = try XCTUnwrap(PlaceImageService.summaryEndpoint(for: "Pérez Art Museum Miami"))
+        let s = url.absoluteString
+        XCTAssertTrue(s.contains("/api/rest_v1/page/summary/"))
+        XCTAssertTrue(s.contains("Museum"))
+        XCTAssertFalse(s.contains(" "))   // spaces must be encoded/replaced
+    }
 }
