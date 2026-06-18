@@ -49,7 +49,8 @@ enum SampleData {
         hours: OpeningHours? = nil,
         tip: String? = nil,
         food: String? = nil,
-        iconic: Bool = false
+        iconic: Bool = false,
+        imageTitle: String? = nil
     ) -> Place {
         Place(
             id: id,
@@ -63,6 +64,7 @@ enum SampleData {
             rating: rating,
             priceTier: price,
             symbol: symbol,
+            imageTitle: imageTitle,
             suggestedMinutes: minutes,
             openingHours: hours,
             insiderTip: tip,

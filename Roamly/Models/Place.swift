@@ -28,6 +28,9 @@ struct Place: Codable, Identifiable, Hashable {
     let priceTier: Int?
     /// SF Symbol used as the visual stand-in for a photo.
     let symbol: String
+    /// Optional Wikipedia article title used to fetch a real photo at runtime.
+    /// When nil (or the lookup fails), the UI falls back to a styled gradient.
+    var imageTitle: String? = nil
     /// Suggested minutes to spend here.
     let suggestedMinutes: Int
     /// Optional opening hours; nil means "always open / unknown".
