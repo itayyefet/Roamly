@@ -18,6 +18,7 @@ enum SampleData {
     static var cities: [City] {
         [
             miami,
+            copenhagen,
             rome,
             newYork,
             paris,

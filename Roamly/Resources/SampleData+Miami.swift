@@ -9,7 +9,7 @@ extension SampleData {
     static let miami = City(
         id: "miami",
         name: "Miami",
-        country: "USA",
+        country: "Florida",
         countryFlag: "🇺🇸",
         center: Coordinate(latitude: 25.7825, longitude: -80.1918),
         neighborhoods: [

@@ -1,7 +1,7 @@
-name: iOS Build
+name: iOS Build & Test
 
-# Builds Roamly on a macOS runner with Xcode 16 so every push gets a real
-# compile check — the one thing that can't be done on Linux.
+# Builds and tests Roamly on a macOS runner with Xcode 16 so every push gets a
+# real compile + unit-test check — the one thing that can't be done on Linux.
 
 on:
   push:
@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build (iOS Simulator)
+  build-test:
+    name: Build & Test (iOS Simulator)
     runs-on: macos-15
 
     steps:
@@ -34,13 +34,21 @@ jobs:
           xcodebuild -version
           swift --version
 
-      - name: Build Roamly
+      - name: Resolve a simulator destination
+        id: sim
         run: |
-          xcodebuild build \
+          # Pick the first available iPhone simulator device name for this runner.
+          DEVICE=$(xcrun simctl list devices available | grep -Eo 'iPhone [0-9]+( Pro)?' | head -1)
+          echo "Using device: ${DEVICE:-iPhone 16}"
+          echo "device=${DEVICE:-iPhone 16}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & test Roamly
+        run: |
+          xcodebuild test \
             -project Roamly.xcodeproj \
             -scheme Roamly \
             -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.device }}" \
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO

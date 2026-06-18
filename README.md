@@ -8,8 +8,9 @@ how much time you have, and Roamly instantly builds a guided, step-by-step
 walking route around you.
 
 > This repository contains a complete, working **SwiftUI MVP**. Route generation
-> runs locally against a curated sample catalog (Miami, Rome, New York, Paris,
-> London) and is architected to swap in real APIs later with zero UI changes.
+> runs locally against a curated sample catalog (Miami, Copenhagen, Manhattan,
+> Rome, Paris, London) and is architected to swap in real APIs later with zero
+> UI changes.
 
 ---
 
@@ -63,7 +64,7 @@ Roamly/
 ├── Models/           City, Place, Route, RouteStop, Intention, … 
 ├── Services/         Data, Location, RouteGeneration, Map, Persistence
 ├── Features/         One folder per screen (MVVM)
-└── Resources/        Sample city catalog (Miami, Rome, NYC, Paris, London)
+└── Resources/        Sample catalog (Miami, Copenhagen, Manhattan, Rome, Paris, London)
 ```
 
 See **[ARCHITECTURE.md](ARCHITECTURE.md)** for a full breakdown.

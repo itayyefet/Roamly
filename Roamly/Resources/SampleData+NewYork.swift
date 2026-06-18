@@ -8,8 +8,8 @@ import Foundation
 extension SampleData {
     static let newYork = City(
         id: "newyork",
-        name: "New York",
-        country: "USA",
+        name: "Manhattan",
+        country: "New York",
         countryFlag: "🇺🇸",
         center: Coordinate(latitude: 40.7549, longitude: -73.9840),
         neighborhoods: [
