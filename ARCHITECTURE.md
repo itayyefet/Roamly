@@ -139,6 +139,23 @@ the whole app supports both modes with no per-view work.
 
 ---
 
+## Pluggable integrations (implemented seams)
+
+The app ships offline-first but the live integrations are already wired behind
+their protocols and toggled by `RoamlyConfig` (env-driven, no code changes):
+
+| Capability | Default | Live option | Switch |
+|-----------|---------|-------------|--------|
+| Places | `MockDataService` | `RemotePlacesService` (Foursquare v3) | `ROAMLY_PLACES_PROVIDER=foursquare` + `FOURSQUARE_API_KEY` |
+| Persistence | `UserDefaultsPersistenceService` | `SwiftDataPersistenceService` (`@Model`) | one line in `AppEnvironment.makeDefault()` |
+| Narration | `MockRouteNarrator` | `AnthropicRouteNarrator` (Claude) | `ANTHROPIC_API_KEY` |
+
+Each live path **fails soft** — a missing key or a network error transparently
+falls back to offline behavior, so the app is never broken by configuration.
+The route-detail screen shows an AI/local "Your guide" note sourced from
+`RouteNarrating`. All three seams are unit-tested (DTO mapping, fallback
+behavior, SwiftData round-trips).
+
 ## Testing & extension notes
 
 - Services are protocol-backed (`PlacesDataProviding`, `PersistenceProviding`),

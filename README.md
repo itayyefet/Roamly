@@ -71,14 +71,20 @@ See **[ARCHITECTURE.md](ARCHITECTURE.md)** for a full breakdown.
 
 ---
 
-## 🔌 Wiring real data later
+## 🔌 Live integrations (already wired, off by default)
 
-Everything funnels through `PlacesDataProviding`. The MVP ships
-`MockDataService`; to go live, implement a `RemotePlacesService` (Google Places,
-Foursquare, Yelp, TripAdvisor, or a custom backend) behind the same protocol and
-swap it in `AppEnvironment.makeDefault()`. No view or view-model code changes.
+The app is offline-first, but the live paths are implemented behind protocols
+and toggled via environment variables — no code changes needed:
 
-Integration points are marked with `// TODO:` comments throughout the codebase.
+| Capability | Activate with |
+|-----------|---------------|
+| **Live places** (Foursquare) | `ROAMLY_PLACES_PROVIDER=foursquare` + `FOURSQUARE_API_KEY` |
+| **AI route narration** (Claude) | `ANTHROPIC_API_KEY` |
+| **SwiftData persistence** | swap one line in `AppEnvironment.makeDefault()` |
+
+Each live path **fails soft**: a missing key or a network error transparently
+falls back to the bundled mock/offline behavior, so the app is never broken by
+configuration. Remaining future hooks are marked with `// TODO:` in the code.
 
 ---
 

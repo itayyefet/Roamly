@@ -15,17 +15,25 @@ struct RouteDetailView: View {
     let route: Route
     @Binding var path: [AppRoute]
 
+    @State private var guideNote: String?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: RoamlySpacing.md) {
                 mapPreview
                 headerBlock
+                guideCard
                 metricsCard
                 stopsPreview
                 Color.clear.frame(height: 90)
             }
             .padding(.horizontal, RoamlySpacing.screenInset)
             .padding(.top, RoamlySpacing.sm)
+        }
+        .task {
+            if guideNote == nil {
+                guideNote = await env.narrator.narrate(route)
+            }
         }
         .background(RoamlyColor.background.ignoresSafeArea())
         .navigationTitle(route.kind.title)
@@ -78,6 +86,29 @@ struct RouteDetailView: View {
                 }
                 .padding(.top, 2)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var guideCard: some View {
+        if let guideNote {
+            HStack(alignment: .top, spacing: RoamlySpacing.sm) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(RoamlyColor.accentOrange)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Your guide").roamlyOverline()
+                    Text(guideNote)
+                        .font(RoamlyFont.callout)
+                        .foregroundStyle(RoamlyColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(RoamlySpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoamlyColor.accentOrange.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: RoamlyRadius.lg, style: .continuous))
+            .transition(.opacity)
         }
     }
 
