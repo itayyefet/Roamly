@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var savedTrips: SavedTripsStore
+    @EnvironmentObject private var explorer: ExplorerProgressStore
 
     @State private var prefs: UserPreference = .default
     @State private var cities: [City] = []
@@ -115,6 +116,7 @@ struct SettingsView: View {
 
     private func resetAll() {
         for trip in savedTrips.trips { savedTrips.delete(trip) }
+        explorer.reset()
         prefs = .default
         env.persistence.savePreferences(.default)
     }

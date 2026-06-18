@@ -19,6 +19,7 @@ struct RoamlyApp: App {
                 .environmentObject(appEnvironment)
                 .environmentObject(appEnvironment.locationService)
                 .environmentObject(appEnvironment.savedTripsStore)
+                .environmentObject(appEnvironment.explorerStore)
                 .tint(RoamlyColor.primaryBlue)
         }
     }

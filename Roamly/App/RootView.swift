@@ -60,6 +60,9 @@ struct MainTabView: View {
             SavedTripsView()
                 .tabItem { Label("Saved", systemImage: "bookmark.fill") }
 
+            PassportView()
+                .tabItem { Label("Passport", systemImage: "trophy.fill") }
+
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }

@@ -16,6 +16,8 @@ struct HomeView: View {
     @StateObject private var vm = HomeViewModel()
     @State private var path: [AppRoute] = []
     @State private var showCityPicker = false
+    @State private var isSurprising = false
+    @State private var surpriseSymbol = "dice.fill"
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -41,10 +43,56 @@ struct HomeView: View {
                     Task { await vm.selectCity(city) }
                 }
             }
+            .overlay {
+                if isSurprising { surpriseOverlay }
+            }
         }
         .task {
             vm.configure(env: env, location: location)
             await vm.start()
+        }
+    }
+
+    // MARK: - Surprise Me
+
+    private var surpriseOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+            VStack(spacing: RoamlySpacing.md) {
+                ZStack {
+                    Circle().fill(Color(hex: 0x8E5BE8).opacity(0.2)).frame(width: 120, height: 120)
+                    Image(systemName: surpriseSymbol)
+                        .font(.system(size: 54, weight: .bold))
+                        .foregroundStyle(.white)
+                        .rotationEffect(.degrees(isSurprising ? 360 : 0))
+                        .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: false), value: surpriseSymbol)
+                }
+                Text("Rolling the dice…")
+                    .font(RoamlyFont.headline)
+                    .foregroundStyle(.white)
+            }
+        }
+        .transition(.opacity)
+    }
+
+    private func rollSurprise() {
+        guard let query = vm.makeQuery(forIntention: .surpriseMe) else { return }
+        #if canImport(UIKit)
+        UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+        #endif
+        withAnimation { isSurprising = true }
+        Task { @MainActor in
+            let symbols = Intention.selectableCategories.map(\.symbol)
+            for i in 0..<11 {
+                surpriseSymbol = symbols[i % symbols.count]
+                #if canImport(UIKit)
+                UISelectionFeedbackGenerator().selectionChanged()
+                #endif
+                try? await Task.sleep(nanoseconds: 90_000_000)
+            }
+            withAnimation { isSurprising = false }
+            surpriseSymbol = "dice.fill"
+            path.append(.routeOptions(query))
         }
     }
 
@@ -158,9 +206,7 @@ struct HomeView: View {
             .disabled(!vm.canCreateRoute)
 
             RoamlyButton(title: "Surprise Me", systemImage: "dice.fill", kind: .secondary) {
-                if let query = vm.makeQuery(forIntention: .surpriseMe) {
-                    path.append(.routeOptions(query))
-                }
+                rollSurprise()
             }
             .disabled(vm.start == nil)
         }

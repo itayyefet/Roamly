@@ -12,26 +12,44 @@ import SwiftUI
 struct ItineraryView: View {
     @EnvironmentObject private var env: AppEnvironment
     @EnvironmentObject private var savedTrips: SavedTripsStore
+    @EnvironmentObject private var explorer: ExplorerProgressStore
 
     let route: Route
     @Binding var path: [AppRoute]
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: RoamlySpacing.md) {
-                summaryHeader
+    @State private var showConfetti = false
+    @State private var showCompletion = false
 
-                if route.duration.isMultiDay {
-                    multiDayBody
-                } else {
-                    ForEach(route.stops) { stop in
-                        stopCard(stop)
+    private var visitedCount: Int { explorer.visitedCount(in: route) }
+    private var isComplete: Bool { route.stopCount > 0 && visitedCount == route.stopCount }
+
+    var body: some View {
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: RoamlySpacing.md) {
+                    summaryHeader
+                    progressHeader
+
+                    if route.duration.isMultiDay {
+                        multiDayBody
+                    } else {
+                        ForEach(route.stops) { stop in
+                            stopCard(stop)
+                        }
                     }
+                    Color.clear.frame(height: 90)
                 }
-                Color.clear.frame(height: 90)
+                .padding(.horizontal, RoamlySpacing.screenInset)
+                .padding(.top, RoamlySpacing.sm)
             }
-            .padding(.horizontal, RoamlySpacing.screenInset)
-            .padding(.top, RoamlySpacing.sm)
+
+            ConfettiView(isActive: showConfetti)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+
+            if showCompletion {
+                completionOverlay
+            }
         }
         .background(RoamlyColor.background.ignoresSafeArea())
         .navigationTitle("Itinerary")
@@ -65,6 +83,87 @@ struct ItineraryView: View {
         }
     }
 
+    private var progressHeader: some View {
+        RoamlyCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Your progress").roamlyOverline()
+                    Spacer()
+                    Text("\(visitedCount)/\(route.stopCount) checked in")
+                        .font(RoamlyFont.caption)
+                        .foregroundStyle(RoamlyColor.textSecondary)
+                }
+                ProgressView(value: Double(visitedCount), total: Double(max(route.stopCount, 1)))
+                    .tint(RoamlyColor.accentOrange)
+                if isComplete {
+                    Label("Trip complete — nice work!", systemImage: "checkmark.seal.fill")
+                        .font(RoamlyFont.caption)
+                        .foregroundStyle(RoamlyColor.success)
+                } else {
+                    Text("Tap “Check in” at each stop as you go.")
+                        .font(RoamlyFont.caption)
+                        .foregroundStyle(RoamlyColor.textSecondary)
+                }
+            }
+        }
+    }
+
+    private var completionOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.35).ignoresSafeArea()
+                .onTapGesture { withAnimation { showCompletion = false } }
+            VStack(spacing: RoamlySpacing.md) {
+                ZStack {
+                    Circle().fill(RoamlyColor.accentOrange.opacity(0.18)).frame(width: 96, height: 96)
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundStyle(RoamlyColor.accentOrange)
+                }
+                Text("Trip Complete! 🎉")
+                    .font(RoamlyFont.title)
+                    .foregroundStyle(RoamlyColor.textPrimary)
+                Text("You explored all \(route.stopCount) stops of \(route.title) in \(route.cityName). It's saved to your Passport.")
+                    .font(RoamlyFont.callout)
+                    .foregroundStyle(RoamlyColor.textSecondary)
+                    .multilineTextAlignment(.center)
+                RoamlyButton(title: "Keep Exploring", systemImage: "sparkles", kind: .accent) {
+                    withAnimation { showCompletion = false }
+                }
+            }
+            .padding(RoamlySpacing.lg)
+            .background(RoamlyColor.surface)
+            .clipShape(RoundedRectangle(cornerRadius: RoamlyRadius.lg, style: .continuous))
+            .roamlyShadow(.card)
+            .padding(.horizontal, RoamlySpacing.xl)
+            .transition(.scale.combined(with: .opacity))
+        }
+    }
+
+    private func checkIn(_ stop: RouteStop) {
+        let wasComplete = isComplete
+        #if canImport(UIKit)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        #endif
+        explorer.toggleCheckIn(place: stop.place, cityName: route.cityName)
+        if !wasComplete && isComplete {
+            celebrateCompletion()
+        }
+    }
+
+    private func celebrateCompletion() {
+        explorer.completeTrip(route)
+        #if canImport(UIKit)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        #endif
+        showConfetti = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation { showConfetti = true }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.15)) {
+                showCompletion = true
+            }
+        }
+    }
+
     @ViewBuilder
     private var multiDayBody: some View {
         let days = Dictionary(grouping: route.stops, by: { $0.day })
@@ -91,6 +190,8 @@ struct ItineraryView: View {
         VStack(spacing: RoamlySpacing.xs) {
             ItineraryStopCard(stop: stop,
                               isLast: stop.id == route.stops.last?.id,
+                              isVisited: explorer.isVisited(stop.place.id),
+                              onCheckIn: { checkIn(stop) },
                               onOpenPlace: { path.append(.placeDetail(stop.place)) },
                               onNavigate: { env.mapService.openInAppleMaps(place: stop.place) })
 
@@ -120,6 +221,8 @@ struct ItineraryView: View {
 struct ItineraryStopCard: View {
     let stop: RouteStop
     var isLast: Bool
+    var isVisited: Bool = false
+    var onCheckIn: () -> Void = {}
     var onOpenPlace: () -> Void
     var onNavigate: () -> Void
 
@@ -127,11 +230,12 @@ struct ItineraryStopCard: View {
         RoamlyCard {
             VStack(alignment: .leading, spacing: RoamlySpacing.sm) {
                 HStack(alignment: .top, spacing: RoamlySpacing.sm) {
-                    StopPin(number: stop.order)
+                    StopPin(number: stop.order, isHighlighted: isVisited)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(stop.place.name)
                             .font(RoamlyFont.headline)
                             .foregroundStyle(RoamlyColor.textPrimary)
+                            .strikethrough(isVisited, color: RoamlyColor.textSecondary)
                         Text(stop.place.categoryLabel)
                             .font(RoamlyFont.caption)
                             .foregroundStyle(RoamlyColor.accentOrange)
@@ -145,6 +249,8 @@ struct ItineraryStopCard: View {
                             .foregroundStyle(RoamlyColor.textSecondary)
                     }
                 }
+
+                checkInButton
 
                 Text(stop.place.whyItMatters)
                     .font(RoamlyFont.callout)
@@ -187,6 +293,28 @@ struct ItineraryStopCard: View {
                 .padding(.top, 2)
             }
         }
+    }
+
+    private var checkInButton: some View {
+        Button(action: onCheckIn) {
+            HStack(spacing: 8) {
+                Image(systemName: isVisited ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 18, weight: .semibold))
+                Text(isVisited ? "Checked in" : "Check in here")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                Spacer()
+                if isVisited {
+                    Image(systemName: "sparkles").font(.system(size: 13))
+                }
+            }
+            .foregroundStyle(isVisited ? RoamlyColor.success : RoamlyColor.primaryBlue)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)
+            .background((isVisited ? RoamlyColor.success : RoamlyColor.primaryBlue).opacity(0.10))
+            .clipShape(RoundedRectangle(cornerRadius: RoamlyRadius.sm, style: .continuous))
+        }
+        .buttonStyle(PressableButtonStyle())
     }
 }
 

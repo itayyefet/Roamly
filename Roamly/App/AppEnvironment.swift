@@ -26,6 +26,7 @@ final class AppEnvironment: ObservableObject {
 
     // MARK: Shared stores
     let savedTripsStore: SavedTripsStore
+    let explorerStore: ExplorerProgressStore
 
     // MARK: Navigation
     /// Whether the user has completed onboarding (persisted).
@@ -48,6 +49,7 @@ final class AppEnvironment: ObservableObject {
         self.persistence = persistence
         self.narrator = narrator
         self.savedTripsStore = SavedTripsStore(persistence: persistence)
+        self.explorerStore = ExplorerProgressStore()
         self.hasCompletedOnboarding = persistence.isOnboardingComplete()
     }
 

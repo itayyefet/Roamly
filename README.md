@@ -25,6 +25,10 @@ walking route around you.
 - **Map-first navigation** — numbered pins, a drawn route path, a focused
   current-stop card with *Next Stop*, and one-tap hand-off to Apple Maps.
 - **Rich place detail** — why it matters, insider tips, food picks, hours, map.
+- **Make it a game** — check into stops as you walk, watch a live progress bar,
+  and get a confetti celebration when you finish a route. An **Explorer Passport**
+  tracks places visited, cities explored and trips completed, with unlockable
+  badges. Plus a playful **"Surprise Me" dice roll** and haptics throughout.
 - **Saved trips** — bookmark and favorite routes; everything persists locally.
 - **Graceful location handling** — permission explained up front; manual city
   picker and demo mode fallbacks when location is denied or unavailable.
