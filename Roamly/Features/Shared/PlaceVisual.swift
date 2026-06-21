@@ -2,10 +2,14 @@
 //  PlaceVisual.swift
 //  Roamly
 //
-//  A place's hero image. When the place has a resolvable photo (via Wikipedia),
-//  it loads asynchronously; otherwise — or while loading, or if it fails — it
-//  shows a brand-tinted gradient with the place's SF Symbol. This keeps the UI
-//  rich whether or not a real photo is available.
+//  A place's hero image, resolved in priority order:
+//    1. A bundled asset named "photo-<place.id>" (instant, offline) — drop real
+//       images into Assets.xcassets to guarantee photos on any network.
+//    2. A real photo fetched from Wikipedia at runtime (when reachable).
+//    3. A polished, category-themed gradient card with the place's SF Symbol.
+//
+//  This means the UI always looks designed, works offline, and upgrades to real
+//  photography wherever the network allows it.
 //
 
 import SwiftUI
@@ -15,24 +19,32 @@ struct PlaceVisual: View {
     var height: CGFloat = 120
     var cornerRadius: CGFloat = RoamlyRadius.md
 
-    @State private var imageURL: URL?
+    @State private var remoteURL: URL?
+
+    /// A bundled asset for this place, if one ships in the catalog.
+    private var bundledImageName: String { "photo-\(place.id)" }
+
+    private var hasBundledImage: Bool {
+        #if canImport(UIKit)
+        return UIImage(named: bundledImageName) != nil
+        #else
+        return false
+        #endif
+    }
 
     var body: some View {
         ZStack {
-            // Base layer: always present, acts as placeholder + fallback.
-            gradient
-            Image(systemName: place.symbol)
-                .font(.system(size: height * 0.32, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.92))
-                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+            themedPlaceholder
 
-            // Photo layer: covers the base once loaded.
-            if let imageURL {
-                AsyncImage(url: imageURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+            if hasBundledImage {
+                Image(bundledImageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let remoteURL {
+                AsyncImage(url: remoteURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
                     if case .success(let image) = phase {
-                        image
-                            .resizable()
-                            .scaledToFill()
+                        image.resizable().scaledToFill()
                     } else {
                         Color.clear
                     }
@@ -44,19 +56,58 @@ struct PlaceVisual: View {
         .frame(height: height)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .task(id: place.id) {
-            guard let title = PlaceImageCatalog.title(for: place) else { return }
-            imageURL = await PlaceImageService.shared.imageURL(forTitle: title)
+            guard !hasBundledImage, let title = PlaceImageCatalog.title(for: place) else { return }
+            remoteURL = await PlaceImageService.shared.imageURL(forTitle: title)
+        }
+    }
+
+    // MARK: Themed placeholder
+
+    private var themedPlaceholder: some View {
+        ZStack {
+            gradient
+            // Soft top sheen for depth.
+            LinearGradient(colors: [Color.white.opacity(0.18), .clear],
+                           startPoint: .top, endPoint: .center)
+            // Large watermark glyph, offset for a dynamic look.
+            Image(systemName: place.symbol)
+                .font(.system(size: height * 0.62, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.10))
+                .offset(x: height * 0.28, y: height * 0.18)
+            // Foreground glyph.
+            Image(systemName: place.symbol)
+                .font(.system(size: height * 0.30, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.95))
+                .shadow(color: .black.opacity(0.18), radius: 6, y: 3)
         }
     }
 
     private var gradient: LinearGradient {
-        // Deterministic hue based on the place id for visual variety.
-        // Sum of scalar values is stable across launches (unlike hashValue).
+        // Category-tinted base for a branded, intentional feel, with a stable
+        // per-place hue shift so neighbouring cards still feel distinct.
         let seed = place.id.unicodeScalars.reduce(0) { $0 &+ Int($1.value) }
-        let hue = Double(seed % 360) / 360.0
-        let base = Color(hue: hue, saturation: 0.55, brightness: 0.62)
-        let second = Color(hue: hue, saturation: 0.7, brightness: 0.42)
-        return LinearGradient(colors: [base, second],
+        let shift = Double(seed % 24) - 12          // -12...11 degrees of variety
+        let tint = (place.intentions.first ?? .localClassics).tint
+        let base = tint.shifted(byHue: shift / 360, brightness: 0.0)
+        let deep = tint.shifted(byHue: shift / 360, brightness: -0.18)
+        return LinearGradient(colors: [base, deep],
                               startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
+private extension Color {
+    /// Returns a copy with a small hue rotation and brightness delta.
+    func shifted(byHue hueDelta: Double, brightness brightnessDelta: Double) -> Color {
+        #if canImport(UIKit)
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        if UIColor(self).getHue(&h, saturation: &s, brightness: &b, alpha: &a) {
+            let newHue = (h + CGFloat(hueDelta)).truncatingRemainder(dividingBy: 1.0)
+            let newBright = min(max(b + CGFloat(brightnessDelta), 0), 1)
+            return Color(hue: Double(newHue < 0 ? newHue + 1 : newHue),
+                         saturation: Double(s),
+                         brightness: Double(newBright))
+        }
+        #endif
+        return self
     }
 }
