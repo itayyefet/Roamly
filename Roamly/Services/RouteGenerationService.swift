@@ -193,6 +193,10 @@ final class RouteGenerationService {
             if breakSuggestion != nil { totalMinutes += 20 }
         }
 
+        // Distance from the user's current location to where the route begins.
+        let startMeters = ordered.first.map { request.start.distance(to: $0.coordinate) }
+        let startMinutes = startMeters.map { max(1, Int(($0 / pace).rounded())) }
+
         let route = Route(
             id: "\(request.city.id)-\(request.intention.rawValue)-\(request.duration.rawValue)-\(kind.rawValue)",
             kind: kind,
@@ -205,7 +209,9 @@ final class RouteGenerationService {
             totalWalkingMeters: totalMeters,
             estimatedMinutes: totalMinutes,
             tags: routeTags(request: request, stops: stops),
-            dayBreaks: multiDay ? dayBreaks : nil
+            dayBreaks: multiDay ? dayBreaks : nil,
+            startDistanceMeters: startMeters,
+            startWalkingMinutes: startMinutes
         )
         return route
     }

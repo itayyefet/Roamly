@@ -138,6 +138,18 @@ final class RouteGenerationServiceTests: XCTestCase {
         }
     }
 
+    func testRouteReportsDistanceFromStart() async throws {
+        let city = SampleData.rome
+        let routes = try await engine.generateRoutes(for: request(city, .history, .mini120))
+        for route in routes {
+            let distance = try XCTUnwrap(route.startDistanceMeters)
+            let expected = city.center.distance(to: route.stops[0].place.coordinate)
+            XCTAssertEqual(distance, expected, accuracy: 1.0)
+            XCTAssertGreaterThanOrEqual(try XCTUnwrap(route.startWalkingMinutes), 1)
+            XCTAssertNotNil(route.startDistanceText)
+        }
+    }
+
     func testEmptyCityThrows() async {
         let empty = City(
             id: "empty",

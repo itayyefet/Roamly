@@ -24,6 +24,7 @@ struct RouteDetailView: View {
                 headerBlock
                 guideCard
                 metricsCard
+                startDistanceRow
                 stopsPreview
                 Color.clear.frame(height: 90)
             }
@@ -109,6 +110,28 @@ struct RouteDetailView: View {
             .background(RoamlyColor.accentOrange.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: RoamlyRadius.lg, style: .continuous))
             .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var startDistanceRow: some View {
+        if let startText = route.startDistanceText {
+            HStack(spacing: RoamlySpacing.sm) {
+                Image(systemName: "figure.walk.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(RoamlyColor.primaryBlue)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Getting there").roamlyOverline()
+                    Text(startText)
+                        .font(RoamlyFont.callout)
+                        .foregroundStyle(RoamlyColor.textPrimary)
+                }
+                Spacer()
+            }
+            .padding(RoamlySpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoamlyColor.primaryBlue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: RoamlyRadius.lg, style: .continuous))
         }
     }
 

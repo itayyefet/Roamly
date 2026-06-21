@@ -39,6 +39,16 @@ struct RouteCardView: View {
                 }
                 .padding(.top, 2)
 
+                if let startText = route.startDistanceText {
+                    Label(startText, systemImage: "location.fill")
+                        .font(RoamlyFont.caption)
+                        .foregroundStyle(RoamlyColor.primaryBlue)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                        .background(RoamlyColor.primaryBlue.opacity(0.10))
+                        .clipShape(Capsule())
+                }
+
                 if !route.tags.isEmpty {
                     FlowLayout(spacing: 6) {
                         ForEach(route.tags, id: \.self) { tag in

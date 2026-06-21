@@ -54,6 +54,10 @@ struct Route: Codable, Identifiable, Hashable {
     let tags: [String]
     /// For multi-day (weekend) itineraries: stop indices grouped by day.
     let dayBreaks: [Int]?
+    /// Straight-line distance (meters) from the user's location to the first stop.
+    var startDistanceMeters: Double? = nil
+    /// Estimated walking minutes from the user's location to the first stop.
+    var startWalkingMinutes: Int? = nil
 
     var stopCount: Int { stops.count }
 
@@ -71,5 +75,22 @@ struct Route: Codable, Identifiable, Hashable {
         if h == 0 { return "\(m) min" }
         if m == 0 { return "\(h) hr" }
         return "\(h) hr \(m) min"
+    }
+
+    /// Human-readable "distance from you to the start", e.g. "1.2 km away".
+    /// nil when unknown; "At the start" when you're essentially there.
+    var startDistanceText: String? {
+        guard let meters = startDistanceMeters else { return nil }
+        if meters < 120 { return "You're at the start" }
+        let distance: String
+        if meters >= 1000 {
+            distance = String(format: "%.1f km", meters / 1000)
+        } else {
+            distance = "\(Int((meters / 50).rounded()) * 50) m"
+        }
+        if let minutes = startWalkingMinutes, meters >= 120 {
+            return "\(distance) · ~\(minutes) min to start"
+        }
+        return "\(distance) to start"
     }
 }
