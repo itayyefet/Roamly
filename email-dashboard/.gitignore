@@ -10,3 +10,6 @@ dist-ssr
 .vite
 
 *.tsbuildinfo
+
+# Real exported mailbox data — never commit
+public/inbox-snapshot.json

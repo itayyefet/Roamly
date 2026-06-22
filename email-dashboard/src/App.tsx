@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
@@ -5,9 +6,12 @@ import {
 } from "@azure/msal-react";
 import { isConfigured, loginRequest } from "./authConfig";
 import { Dashboard } from "./components/Dashboard";
+import { DashboardView } from "./components/DashboardView";
 import { SetupNotice } from "./components/SetupNotice";
+import { SnapshotLoader } from "./components/SnapshotLoader";
+import { tryLoadHostedSnapshot, type DashboardData } from "./lib/snapshot";
 
-function SignIn() {
+function SignIn({ onSnapshot }: { onSnapshot: (d: DashboardData) => void }) {
   const { instance } = useMsal();
 
   return (
@@ -28,6 +32,10 @@ function SignIn() {
         >
           Sign in with Microsoft
         </button>
+        <div className="or-divider">
+          <span>or</span>
+        </div>
+        <SnapshotLoader onLoaded={onSnapshot} />
         <p className="fineprint muted">
           Requests: profile, read mail, read calendar. Nothing is sent, deleted,
           or modified.
@@ -38,8 +46,29 @@ function SignIn() {
 }
 
 export default function App() {
+  const [snapshot, setSnapshot] = useState<DashboardData | null>(null);
+
+  // If a snapshot file was dropped into public/ (inbox-snapshot.json), load
+  // it automatically so the dashboard "just works" with no sign-in.
+  useEffect(() => {
+    tryLoadHostedSnapshot().then((data) => {
+      if (data) setSnapshot(data);
+    });
+  }, []);
+
+  if (snapshot) {
+    return (
+      <DashboardView
+        data={snapshot}
+        onExit={() => setSnapshot(null)}
+        exitLabel="Close snapshot"
+        sourceNote="Snapshot view (exported data, not live)"
+      />
+    );
+  }
+
   if (!isConfigured) {
-    return <SetupNotice />;
+    return <SetupNotice onSnapshot={setSnapshot} />;
   }
 
   return (
@@ -48,7 +77,7 @@ export default function App() {
         <Dashboard />
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
-        <SignIn />
+        <SignIn onSnapshot={setSnapshot} />
       </UnauthenticatedTemplate>
     </>
   );

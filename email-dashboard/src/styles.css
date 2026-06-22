@@ -535,6 +535,40 @@ a[target="_blank"] {
   font-weight: 600;
 }
 
+/* --------------------------- Snapshot loader --------------------------- */
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 4px 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.snapshot-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.snapshot-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+}
+
 /* ------------------------------ Spinner -------------------------------- */
 
 .spinner {

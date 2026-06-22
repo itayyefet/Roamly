@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-06-22T09:15:00Z",
+  "profile": {
+    "displayName": "Itay Yefet",
+    "email": "yefet.itay@example.com",
+    "jobTitle": "Founder"
+  },
+  "inbox": {
+    "totalItemCount": 1842,
+    "unreadItemCount": 37
+  },
+  "messages": [
+    {
+      "id": "1",
+      "subject": "Q3 roadmap review — can you confirm Thursday?",
+      "bodyPreview": "Hi Itay, circling back on the roadmap sync. Thursday 2pm still works on our end…",
+      "receivedDateTime": "2026-06-22T08:42:00Z",
+      "isRead": false,
+      "hasAttachments": false,
+      "importance": "high",
+      "from": { "name": "Dana Levin", "address": "dana@partnerco.com" },
+      "flagged": true,
+      "webLink": "https://outlook.office.com/mail/inbox/id/1"
+    },
+    {
+      "id": "2",
+      "subject": "Invoice #4471 attached",
+      "bodyPreview": "Please find attached the invoice for May services. Payment terms net-30…",
+      "receivedDateTime": "2026-06-22T07:10:00Z",
+      "isRead": false,
+      "hasAttachments": true,
+      "importance": "normal",
+      "from": { "name": "Billing", "address": "billing@vendor.io" },
+      "flagged": false,
+      "webLink": "https://outlook.office.com/mail/inbox/id/2"
+    },
+    {
+      "id": "3",
+      "subject": "Re: Beta feedback from users",
+      "bodyPreview": "Great progress this week — three more testers came back with notes…",
+      "receivedDateTime": "2026-06-21T19:55:00Z",
+      "isRead": true,
+      "hasAttachments": false,
+      "importance": "normal",
+      "from": { "name": "Dana Levin", "address": "dana@partnerco.com" },
+      "flagged": false,
+      "webLink": "https://outlook.office.com/mail/inbox/id/3"
+    },
+    {
+      "id": "4",
+      "subject": "Your weekly analytics digest",
+      "bodyPreview": "Sessions are up 12% week over week. Top channel: organic search…",
+      "receivedDateTime": "2026-06-21T06:00:00Z",
+      "isRead": true,
+      "hasAttachments": false,
+      "importance": "low",
+      "from": { "name": "Analytics", "address": "noreply@analytics.app" },
+      "flagged": false,
+      "webLink": "https://outlook.office.com/mail/inbox/id/4"
+    },
+    {
+      "id": "5",
+      "subject": "Contract draft for review",
+      "bodyPreview": "Sharing the redlined draft — see comments in sections 3 and 7…",
+      "receivedDateTime": "2026-06-20T15:30:00Z",
+      "isRead": false,
+      "hasAttachments": true,
+      "importance": "high",
+      "from": { "name": "Legal Team", "address": "legal@lawfirm.com" },
+      "flagged": true,
+      "webLink": "https://outlook.office.com/mail/inbox/id/5"
+    },
+    {
+      "id": "6",
+      "subject": "Lunch next week?",
+      "bodyPreview": "It's been too long! Free any day after Tuesday — let me know…",
+      "receivedDateTime": "2026-06-20T11:05:00Z",
+      "isRead": true,
+      "hasAttachments": false,
+      "importance": "normal",
+      "from": { "name": "Sam Cohen", "address": "sam.cohen@gmail.com" },
+      "flagged": false,
+      "webLink": "https://outlook.office.com/mail/inbox/id/6"
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "subject": "Roadmap review with PartnerCo",
+      "start": "2026-06-25T14:00:00Z",
+      "end": "2026-06-25T15:00:00Z",
+      "location": "Zoom",
+      "isAllDay": false,
+      "webLink": "https://outlook.office.com/calendar/item/e1"
+    },
+    {
+      "id": "e2",
+      "subject": "Investor update call",
+      "start": "2026-06-26T16:30:00Z",
+      "end": "2026-06-26T17:00:00Z",
+      "location": "Google Meet",
+      "isAllDay": false,
+      "webLink": "https://outlook.office.com/calendar/item/e2"
+    }
+  ]
+}

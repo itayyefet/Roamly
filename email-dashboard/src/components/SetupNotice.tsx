@@ -1,8 +1,15 @@
+import { SnapshotLoader } from "./SnapshotLoader";
+import type { DashboardData } from "../lib/snapshot";
+
 /**
  * Shown when no Azure client ID has been configured yet, so the app gives
  * clear next steps instead of a blank MSAL error.
  */
-export function SetupNotice() {
+export function SetupNotice({
+  onSnapshot,
+}: {
+  onSnapshot: (d: DashboardData) => void;
+}) {
   return (
     <div className="centered">
       <div className="signin-card setup">
@@ -46,8 +53,15 @@ export function SetupNotice() {
             Restart the dev server (<code>npm run dev</code>) and refresh.
           </li>
         </ol>
+        <div className="or-divider">
+          <span>or skip setup for now</span>
+        </div>
+        <SnapshotLoader onLoaded={onSnapshot} />
         <p className="fineprint muted">
-          Full walkthrough is in <code>email-dashboard/README.md</code>.
+          Have Cowork export your inbox to a JSON file (see{" "}
+          <code>COWORK_PROMPT.md</code>) and load it above to preview the
+          dashboard instantly. Full setup is in{" "}
+          <code>email-dashboard/README.md</code>.
         </p>
       </div>
     </div>

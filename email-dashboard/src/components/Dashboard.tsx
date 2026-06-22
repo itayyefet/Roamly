@@ -6,32 +6,10 @@ import {
   fetchInboxFolder,
   fetchRecentMessages,
   fetchUpcomingEvents,
-  type GraphUser,
-  type GraphMessage,
-  type MailFolder,
   type GraphEvent,
 } from "../lib/graph";
-import {
-  topSenders,
-  countFlagged,
-  countImportant,
-  countWithAttachments,
-  countToday,
-  type SenderSummary,
-} from "../lib/insights";
-import { StatCard } from "./StatCard";
-import { MessageList } from "./MessageList";
-import { SenderList } from "./SenderList";
-import { EventList } from "./EventList";
-import { Avatar } from "./Avatar";
-
-interface DashboardData {
-  profile: GraphUser;
-  inbox: MailFolder;
-  messages: GraphMessage[];
-  events: GraphEvent[];
-  senders: SenderSummary[];
-}
+import { buildDashboardData, type DashboardData } from "../lib/snapshot";
+import { DashboardView } from "./DashboardView";
 
 type LoadState =
   | { status: "loading" }
@@ -58,13 +36,7 @@ export function Dashboard() {
 
       setState({
         status: "ready",
-        data: {
-          profile,
-          inbox,
-          messages,
-          events,
-          senders: topSenders(messages),
-        },
+        data: buildDashboardData({ profile, inbox, messages, events }),
       });
     } catch (err) {
       setState({
@@ -117,91 +89,14 @@ export function Dashboard() {
     );
   }
 
-  const { profile, inbox, messages, events, senders } = state.data;
-  const displayName = profile.displayName || account?.name || "there";
-  const email = profile.mail || profile.userPrincipalName;
-
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="topbar-id">
-          <Avatar name={displayName} size={44} />
-          <div>
-            <h1 className="topbar-title">Hi, {displayName.split(" ")[0]} 👋</h1>
-            <p className="muted topbar-sub">{email}</p>
-          </div>
-        </div>
-        <div className="topbar-actions">
-          <button
-            className="btn btn-ghost"
-            onClick={refresh}
-            disabled={refreshing}
-          >
-            {refreshing ? "Refreshing…" : "↻ Refresh"}
-          </button>
-          <button className="btn btn-ghost" onClick={signOut}>
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      <section className="stats-grid">
-        <StatCard
-          label="Unread in inbox"
-          value={inbox.unreadItemCount}
-          accent="blue"
-          icon="📬"
-        />
-        <StatCard
-          label="Total in inbox"
-          value={inbox.totalItemCount}
-          accent="slate"
-          icon="🗂️"
-        />
-        <StatCard
-          label="Arrived today"
-          value={countToday(messages)}
-          accent="green"
-          icon="🕒"
-          hint="last 24h"
-        />
-        <StatCard
-          label="Flagged"
-          value={countFlagged(messages)}
-          accent="amber"
-          icon="🚩"
-          hint="recent"
-        />
-        <StatCard
-          label="High importance"
-          value={countImportant(messages)}
-          accent="red"
-          icon="❗"
-          hint="recent"
-        />
-        <StatCard
-          label="With attachments"
-          value={countWithAttachments(messages)}
-          accent="purple"
-          icon="📎"
-          hint="recent"
-        />
-      </section>
-
-      <div className="columns">
-        <main className="col-main">
-          <MessageList messages={messages} />
-        </main>
-        <aside className="col-side">
-          <SenderList senders={senders} />
-          <EventList events={events} />
-        </aside>
-      </div>
-
-      <footer className="footer muted">
-        Read-only view via Microsoft Graph · stats reflect the {messages.length}{" "}
-        most recent inbox messages
-      </footer>
-    </div>
+    <DashboardView
+      data={state.data}
+      onRefresh={refresh}
+      refreshing={refreshing}
+      onExit={signOut}
+      exitLabel="Sign out"
+      sourceNote="Live read-only view via Microsoft Graph"
+    />
   );
 }

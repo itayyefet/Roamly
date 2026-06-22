@@ -22,7 +22,18 @@ attachments, and upcoming calendar events.
   receives a short-lived access token, cached in `sessionStorage` and cleared
   when you close the tab.
 
-## Setup (≈5 minutes)
+## Two ways to use it
+
+1. **Live connection** (full setup below) — sign in with Microsoft and read your
+   inbox in real time via Graph.
+2. **Snapshot mode** (zero setup) — have a tool that already has your mailbox
+   (e.g. **Cowork**) export an `inbox-snapshot.json` and load it straight into
+   the dashboard. See [`COWORK_PROMPT.md`](./COWORK_PROMPT.md) for the exact
+   prompt and `public/inbox-snapshot.example.json` for the format. Click
+   **"Load a snapshot from Cowork"** on the start screen, or drop the file at
+   `public/inbox-snapshot.json` to auto-load it on launch.
+
+## Setup (≈5 minutes) — live connection
 
 ### 1. Register a free Azure app
 
