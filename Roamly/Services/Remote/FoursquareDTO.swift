@@ -16,7 +16,9 @@ struct FoursquareSearchResponse: Decodable {
 struct FoursquarePlace: Decodable {
     let fsqID: String
     let name: String
-    let categories: [FoursquareCategory]
+    // Optional: Foursquare omits `categories` for un-categorized results, and a
+    // missing key must not fail decoding of the entire response.
+    let categories: [FoursquareCategory]?
     let geocodes: FoursquareGeocodes?
     let location: FoursquareLocation?
     let rating: Double?      // 0...10
@@ -54,7 +56,7 @@ extension FoursquarePlace {
     /// Returns nil if the result lacks coordinates (unroutable).
     func toPlace(intention: Intention) -> Place? {
         guard let coord = geocodes?.main else { return nil }
-        let category = categories.first?.name ?? "Local Spot"
+        let category = categories?.first?.name ?? "Local Spot"
         // Foursquare rating is 0–10; Roamly uses 0–5.
         let normalizedRating = rating.map { ($0 / 2.0).rounded(toPlaces: 1) } ?? 4.0
         let iconic = (rating ?? 0) >= 9.0

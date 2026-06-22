@@ -51,6 +51,26 @@ final class RemotePlacesServiceTests: XCTestCase {
         XCTAssertTrue(place.intentions.contains(.religiousHeritage))
     }
 
+    func testResultWithoutCategoriesKeyStillDecodes() throws {
+        // Foursquare omits `categories` entirely for un-categorized results; a
+        // missing key must not fail decoding of the whole response.
+        let json = """
+        {
+          "results": [
+            {
+              "fsq_id": "no-cat",
+              "name": "Uncategorized Spot",
+              "geocodes": { "main": { "latitude": 41.9, "longitude": 12.5 } }
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let response = try JSONDecoder().decode(FoursquareSearchResponse.self, from: json)
+        let place = try XCTUnwrap(response.results.first?.toPlace(intention: .history))
+        XCTAssertEqual(place.categoryLabel, "Local Spot")  // graceful default
+    }
+
     func testSurpriseMeMapsToLocalClassics() throws {
         let response = try JSONDecoder().decode(FoursquareSearchResponse.self, from: sampleJSON)
         let place = response.results.compactMap { $0.toPlace(intention: .surpriseMe) }.first

@@ -14,7 +14,10 @@ import Combine
 struct ExplorerProgress: Codable, Equatable {
     var visitedPlaceIDs: Set<String> = []
     var completedTripIDs: Set<String> = []
-    var visitedCityNames: Set<String> = []
+    /// Maps a visited place to its city, so the explored-cities count is always
+    /// derived from places you currently have checked in (un-checking the last
+    /// place in a city correctly drops that city).
+    var placeCities: [String: String] = [:]
 }
 
 @MainActor
@@ -37,7 +40,9 @@ final class ExplorerProgressStore: ObservableObject {
 
     // MARK: Stats
     var placesVisited: Int { progress.visitedPlaceIDs.count }
-    var citiesExplored: Int { progress.visitedCityNames.count }
+    var citiesExplored: Int {
+        Set(progress.visitedPlaceIDs.compactMap { progress.placeCities[$0] }).count
+    }
     var tripsCompleted: Int { progress.completedTripIDs.count }
 
     func isVisited(_ placeID: String) -> Bool {
@@ -51,7 +56,7 @@ final class ExplorerProgressStore: ObservableObject {
     func checkIn(place: Place, cityName: String) -> Bool {
         let isNew = !progress.visitedPlaceIDs.contains(place.id)
         progress.visitedPlaceIDs.insert(place.id)
-        progress.visitedCityNames.insert(cityName)
+        progress.placeCities[place.id] = cityName
         persist()
         return isNew
     }
@@ -61,7 +66,7 @@ final class ExplorerProgressStore: ObservableObject {
             progress.visitedPlaceIDs.remove(place.id)
         } else {
             progress.visitedPlaceIDs.insert(place.id)
-            progress.visitedCityNames.insert(cityName)
+            progress.placeCities[place.id] = cityName
         }
         persist()
     }
@@ -69,9 +74,9 @@ final class ExplorerProgressStore: ObservableObject {
     /// Marks a whole route as completed (all stops visited).
     func completeTrip(_ route: Route) {
         progress.completedTripIDs.insert(route.id)
-        progress.visitedCityNames.insert(route.cityName)
         for stop in route.stops {
             progress.visitedPlaceIDs.insert(stop.place.id)
+            progress.placeCities[stop.place.id] = route.cityName
         }
         persist()
     }

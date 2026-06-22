@@ -89,8 +89,12 @@ final class HomeViewModel: ObservableObject {
             location.requestLocation()
             if let coord = location.coordinate {
                 await resolve(using: coord)
+            } else {
+                // Show an approximate demo city immediately so the screen is
+                // never stuck "Finding your city…" if a fix is slow or fails;
+                // the $coordinate sink upgrades to the real city once it arrives.
+                useDemoCity()
             }
-            // Otherwise we wait for the published coordinate update.
         } else if location.isDenied {
             locationDenied = true
             useDemoCity()

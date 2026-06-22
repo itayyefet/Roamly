@@ -38,6 +38,20 @@ final class ExplorerProgressStoreTests: XCTestCase {
         XCTAssertFalse(store.isVisited(stop.place.id))
     }
 
+    func testUncheckingLastPlaceDropsCityCount() async {
+        let (store, _) = makeStore()
+        let route = await TestFactory.sampleRoute()
+        let stop = route.stops[0]
+
+        store.toggleCheckIn(place: stop.place, cityName: route.cityName)
+        XCTAssertEqual(store.citiesExplored, 1)
+
+        // Un-checking the only visited place must also drop its city.
+        store.toggleCheckIn(place: stop.place, cityName: route.cityName)
+        XCTAssertEqual(store.placesVisited, 0)
+        XCTAssertEqual(store.citiesExplored, 0)
+    }
+
     func testCompleteTripMarksAllStopsAndUnlocksBadges() async {
         let (store, _) = makeStore()
         let route = await TestFactory.sampleRoute()
