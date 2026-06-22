@@ -33,29 +33,36 @@ final class PlaceImageService {
         if let cached = cache[title] { return cached }
         if failed.contains(title) { return nil }
 
-        if let url = await pageImageURL(forTitle: title) {
-            cache[title] = url
-            return url
+        do {
+            if let url = try await pageImageURL(forTitle: title) {
+                cache[title] = url
+                return url
+            }
+            if let url = try await summaryImageURL(forTitle: title) {
+                cache[title] = url
+                return url
+            }
+            // Both endpoints answered but carried no image → a genuine miss we
+            // can remember. (Transient network errors throw and are NOT cached,
+            // so a photo that fails once can still load on a later attempt.)
+            failed.insert(title)
+            return nil
+        } catch {
+            return nil
         }
-        if let url = await summaryImageURL(forTitle: title) {
-            cache[title] = url
-            return url
-        }
-        failed.insert(title)
-        return nil
     }
 
     // MARK: Sources
 
-    private func pageImageURL(forTitle title: String) async -> URL? {
+    private func pageImageURL(forTitle title: String) async throws -> URL? {
         guard let endpoint = Self.endpoint(for: title) else { return nil }
-        guard let data = try? await fetch(endpoint) else { return nil }
+        guard let data = try await fetch(endpoint) else { return nil }
         return Self.parseThumbnail(from: data)
     }
 
-    private func summaryImageURL(forTitle title: String) async -> URL? {
+    private func summaryImageURL(forTitle title: String) async throws -> URL? {
         guard let endpoint = Self.summaryEndpoint(for: title) else { return nil }
-        guard let data = try? await fetch(endpoint) else { return nil }
+        guard let data = try await fetch(endpoint) else { return nil }
         return Self.parseSummaryImage(from: data)
     }
 

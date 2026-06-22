@@ -56,6 +56,9 @@ struct PlaceVisual: View {
         .frame(height: height)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .task(id: place.id) {
+            // Clear any photo from a previously-displayed place so a recycled
+            // view never shows the wrong image while the new one resolves.
+            remoteURL = nil
             guard !hasBundledImage, let title = PlaceImageCatalog.title(for: place) else { return }
             remoteURL = await PlaceImageService.shared.imageURL(forTitle: title)
         }

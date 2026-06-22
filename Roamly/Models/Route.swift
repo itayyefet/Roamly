@@ -86,9 +86,11 @@ struct Route: Codable, Identifiable, Hashable {
         if meters >= 1000 {
             distance = String(format: "%.1f km", meters / 1000)
         } else {
-            distance = "\(Int((meters / 50).rounded()) * 50) m"
+            // Round to the nearest 10 m so the shown value never dips below the
+            // 120 m "at the start" threshold (e.g. 122 m stays "120 m", not "100 m").
+            distance = "\(Int((meters / 10).rounded()) * 10) m"
         }
-        if let minutes = startWalkingMinutes, meters >= 120 {
+        if let minutes = startWalkingMinutes {
             return "\(distance) · ~\(minutes) min to start"
         }
         return "\(distance) to start"
