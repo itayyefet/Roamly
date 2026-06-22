@@ -36,13 +36,18 @@ struct PlaceVisual: View {
         ZStack {
             themedPlaceholder
 
+            // Bundled scene: the always-present, offline guarantee.
             if hasBundledImage {
                 Image(bundledImageName)
                     .resizable()
                     .scaledToFill()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let remoteURL {
-                AsyncImage(url: remoteURL, transaction: Transaction(animation: .easeInOut(duration: 0.25))) { phase in
+            }
+
+            // A real Wikipedia photo loads on top whenever the network allows,
+            // upgrading the bundled scene to an actual photograph.
+            if let remoteURL {
+                AsyncImage(url: remoteURL, transaction: Transaction(animation: .easeInOut(duration: 0.3))) { phase in
                     if case .success(let image) = phase {
                         image.resizable().scaledToFill()
                     } else {
@@ -59,7 +64,7 @@ struct PlaceVisual: View {
             // Clear any photo from a previously-displayed place so a recycled
             // view never shows the wrong image while the new one resolves.
             remoteURL = nil
-            guard !hasBundledImage, let title = PlaceImageCatalog.title(for: place) else { return }
+            guard let title = PlaceImageCatalog.title(for: place) else { return }
             remoteURL = await PlaceImageService.shared.imageURL(forTitle: title)
         }
     }
