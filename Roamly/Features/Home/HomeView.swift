@@ -65,7 +65,7 @@ struct HomeView: View {
                         .font(.system(size: 54, weight: .bold))
                         .foregroundStyle(.white)
                         .rotationEffect(.degrees(isSurprising ? 360 : 0))
-                        .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: false), value: surpriseSymbol)
+                        .animation(.linear(duration: 0.6).repeatForever(autoreverses: false), value: isSurprising)
                 }
                 Text("Rolling the dice…")
                     .font(RoamlyFont.headline)

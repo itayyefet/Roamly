@@ -235,7 +235,9 @@ final class RouteGenerationService {
 
     private func breakFor(request: RouteRequest, index: Int, total: Int, place: Place) -> BreakSuggestion? {
         guard request.duration.includesMealBreak else { return nil }
-        let mid = total / 2
+        // Keep the meal break off the final stop, which has nothing to continue
+        // to (matters only when a meal-break trip resolves to very few stops).
+        let mid = min(total / 2, max(0, total - 2))
         if index == mid {
             if let food = place.foodRecommendation {
                 return BreakSuggestion(kind: .food, text: food)
